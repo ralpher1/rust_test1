@@ -141,7 +141,7 @@ ANALYSIS:
 - **tokio**: Industry-standard async runtime (used by Discord, AWS, etc.)
 - **tracing**: Structured, composable logging (better than `println!`)
 - **colored**: ANSI terminal colors for beautiful output
-- **quanta**: High-precision timing (nanosecond accuracy)
+- **std::time::Instant**: High-precision timing from the Rust standard library
 - **futures**: Async utilities and combinators
 
 ### Rust Edition
