@@ -81,7 +81,7 @@ pub fn inspect_string(s: &String, description: &str) -> StringMemoryInfo {
 /// - String literals live in the binary's read-only data section
 pub fn inspect_str(s: &str, description: &str) -> StringMemoryInfo {
     // Determine if this is a string literal (in static memory) or elsewhere
-    let is_static = is_static_str(s);
+    let is_static = is_static_str(s, None);
 
     StringMemoryInfo {
         data_ptr: s.as_ptr() as usize,
