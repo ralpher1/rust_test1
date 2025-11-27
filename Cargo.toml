@@ -20,6 +20,12 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "ansi",
 # Beautiful terminal output
 colored = "2.1"
 
+# Progress bars and spinners
+indicatif = "0.17"
+
+# Terminal control for better interaction
+crossterm = "0.27"
+
 # High-precision timing
 
 
