@@ -24,7 +24,7 @@ use colored::Colorize;
 use inspector::*;
 use std::borrow::Cow;
 use tokio::task;
-use tracing::{debug, error, info, warn, Level};
+use tracing::{error, info, warn, Level};
 use tracing_subscriber::fmt::format::FmtSpan;
 use transformer::*;
 
