@@ -22,8 +22,6 @@ colored = "2.1"
 
 # High-precision timing
 
-# Futures utilities
-futures = "0.3"
 
 [profile.dev]
 # Enable some optimizations even in dev for better performance demonstrations
