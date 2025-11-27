@@ -1,0 +1,36 @@
+[package]
+name = "introspective-strings"
+version = "0.1.0"
+edition = "2021"
+authors = ["Rust Explorer <explorer@rust.example>"]
+description = "A self-aware string manipulation program that deeply introspects Rust's memory model"
+repository = "https://github.com/example/introspective-strings"
+license = "MIT OR Apache-2.0"
+keywords = ["strings", "async", "memory", "introspection", "educational"]
+categories = ["educational", "development-tools"]
+
+[dependencies]
+# Async runtime with all features for maximum capability
+tokio = { version = "1.35", features = ["full", "tracing"] }
+
+# Structured, composable logging - the gold standard
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "ansi", "json"] }
+
+# Beautiful terminal output
+colored = "2.1"
+
+# High-precision timing
+quanta = "0.12"
+
+# Futures utilities
+futures = "0.3"
+
+[profile.dev]
+# Enable some optimizations even in dev for better performance demonstrations
+opt-level = 1
+
+[profile.release]
+# Full optimizations for production
+lto = true
+codegen-units = 1
