@@ -145,15 +145,20 @@ pub fn inspect_cow(s: &Cow<str>, description: &str) -> StringMemoryInfo {
     }
 }
 
-/// Attempts to determine if a &str points to static memory
+/// Attempts to determine if a &str points to static memory (string literal)
 ///
-/// This is a heuristic - we check if the pointer is in a "reasonable"
-/// static range. This works for string literals in the binary.
-fn is_static_str(s: &str) -> bool {
-    let ptr = s.as_ptr() as usize;
-    // String literals typically live in low memory addresses
-    // This is platform-dependent but works for demonstration
-    ptr < 0x600000000000
+/// This function compares the pointer of `s` to a known static string reference.
+/// If `static_ref` is provided, it uses `std::ptr::eq` to check if `s` points to the same memory.
+/// Note: Without a reference to the original static string, it is not possible to reliably detect
+/// if a &str is static. This function does not attempt any platform-dependent heuristics.
+pub fn is_static_str(s: &str, static_ref: Option<&'static str>) -> bool {
+    match static_ref {
+        Some(reference) => std::ptr::eq(s, reference),
+        None => {
+            // Cannot reliably detect static strings without a reference.
+            false
+        }
+    }
 }
 
 /// Prints a beautiful comparison of memory layout between two strings
