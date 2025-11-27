@@ -1,0 +1,26 @@
+# Rust build artifacts
+/target/
+Cargo.lock
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Rust debug symbols
+*.pdb
+
+# Test and benchmark outputs
+*.profdata
+*.gcda
+*.gcno
+
+# Documentation build
+/doc/
+
+# Environment files
+.env
+.env.local
