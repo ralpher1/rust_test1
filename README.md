@@ -142,7 +142,6 @@ ANALYSIS:
 - **tracing**: Structured, composable logging (better than `println!`)
 - **colored**: ANSI terminal colors for beautiful output
 - **std::time::Instant**: High-precision timing from the Rust standard library
-- **futures**: Async utilities and combinators
 
 ### Rust Edition
 - **2021**: Latest stable edition with modern ergonomics
