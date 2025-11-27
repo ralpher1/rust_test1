@@ -21,7 +21,6 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "ansi",
 colored = "2.1"
 
 # High-precision timing
-quanta = "0.12"
 
 # Futures utilities
 futures = "0.3"
