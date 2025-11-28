@@ -260,10 +260,7 @@ impl StringManipulator {
             result
         });
 
-        info!(
-            "Interleaved '{}' and '{}' -> '{}'",
-            s1, s2, result.value
-        );
+        info!("Interleaved '{}' and '{}' -> '{}'", s1, s2, result.value);
 
         result
     }

@@ -43,7 +43,7 @@ async fn demo_string_types() {
     // String literal - stored in binary's read-only data section
     println!("\n{}", "  ➤ Creating string literal...".bright_cyan());
     let literal: &'static str = "Rust";
-    let info_literal = inspect_str(literal, "String literal (&'static str)");
+    let info_literal = inspect_str(literal, "String literal (&'static str)", Some(literal));
     println!("\n{}", info_literal);
 
     // Owned String - heap allocated with capacity for growth
@@ -130,7 +130,7 @@ async fn demo_ownership() {
         "The pointer addresses are identical!\n\
          Move is zero-cost - just transfers ownership.\n\
          No data was copied, no new allocation happened.\n\
-         The compiler prevents use of 'original' after the move."
+         The compiler prevents use of 'original' after the move.",
     );
 
     // Clone - creates a new heap allocation and copies data
@@ -183,7 +183,10 @@ async fn demo_capacity_and_growth() {
     info!("Exploring how String manages capacity...");
 
     // Create with exact capacity
-    println!("\n{}", "  ➤ Creating String with capacity 8...".bright_cyan());
+    println!(
+        "\n{}",
+        "  ➤ Creating String with capacity 8...".bright_cyan()
+    );
     let mut s = String::with_capacity(8);
 
     let info_empty = inspect_string(&s, "Empty String with capacity 8");
@@ -192,7 +195,10 @@ async fn demo_capacity_and_growth() {
     print_meter("Capacity Usage", 0.0, 8.0, "bytes");
 
     // Add data within capacity
-    println!("\n{}", "  ➤ Adding 'Rust' (4 bytes) within capacity...".bright_cyan());
+    println!(
+        "\n{}",
+        "  ➤ Adding 'Rust' (4 bytes) within capacity...".bright_cyan()
+    );
     animate_thinking("Writing to existing buffer", 300);
 
     s.push_str("Rust");
@@ -205,12 +211,15 @@ async fn demo_capacity_and_growth() {
     print_insight(
         "No reallocation occurred!\n\
          The data was written into the pre-allocated buffer.\n\
-         The pointer address remains the same."
+         The pointer address remains the same.",
     );
 
     // Exceed capacity - forces reallocation
     warn!("⚠ About to exceed capacity - reallocation will occur!");
-    println!("\n{}", "  ➤ Adding '!!!!!' (5 more bytes = 9 total)...".bright_yellow());
+    println!(
+        "\n{}",
+        "  ➤ Adding '!!!!!' (5 more bytes = 9 total)...".bright_yellow()
+    );
     animate_thinking("Triggering reallocation", 300);
 
     s.push_str("!!!!!"); // 5 more bytes = 9 total (exceeds 8)
@@ -219,7 +228,12 @@ async fn demo_capacity_and_growth() {
 
     compare_memory_layout(&info_rust, &info_reallocated, "Reallocation Triggered");
 
-    print_meter("Capacity Usage", 9.0, info_reallocated.capacity as f64, "bytes");
+    print_meter(
+        "Capacity Usage",
+        9.0,
+        info_reallocated.capacity as f64,
+        "bytes",
+    );
 
     print_warning(
         "REALLOCATION OCCURRED!\n\
@@ -227,7 +241,7 @@ async fn demo_capacity_and_growth() {
          1. Allocate a new, larger buffer (usually 2x size)\n\
          2. Copy all existing data to the new buffer\n\
          3. Free the old buffer\n\
-         This is an O(n) operation!"
+         This is an O(n) operation!",
     );
 
     print_insight(&format!(
@@ -246,7 +260,10 @@ async fn demo_capacity_and_growth() {
         ("Empty String", "8 bytes allocated, 0 used"),
         ("Add 'Rust'", "4 bytes used, no reallocation"),
         ("Add '!!!!!'", "Exceeds capacity → triggers reallocation"),
-        ("New Buffer", &format!("{} bytes allocated (2x growth)", info_reallocated.capacity)),
+        (
+            "New Buffer",
+            &format!("{} bytes allocated (2x growth)", info_reallocated.capacity),
+        ),
     ]);
 
     print_summary(
@@ -272,7 +289,10 @@ async fn demo_clone_on_write() {
     let static_str = "Ferris the Crab";
 
     // Cow starts borrowed - zero cost
-    println!("\n{}", "  ➤ Creating Cow::Borrowed (zero-cost wrapper)...".bright_cyan());
+    println!(
+        "\n{}",
+        "  ➤ Creating Cow::Borrowed (zero-cost wrapper)...".bright_cyan()
+    );
     animate_thinking("Wrapping borrowed reference", 300);
 
     let cow_borrowed: Cow<str> = Cow::Borrowed(static_str);
@@ -283,11 +303,14 @@ async fn demo_clone_on_write() {
         "Cow::Borrowed is just a reference wrapper!\n\
          No allocation occurred.\n\
          No data was copied.\n\
-         Points directly to the original string."
+         Points directly to the original string.",
     );
 
     // Convert to owned when needed
-    println!("\n{}", "  ➤ Mutating Cow (triggers conversion to Owned)...".bright_yellow());
+    println!(
+        "\n{}",
+        "  ➤ Mutating Cow (triggers conversion to Owned)...".bright_yellow()
+    );
     animate_thinking("Allocating heap memory for mutation", 400);
 
     let mut cow_owned = cow_borrowed.clone();
@@ -311,7 +334,7 @@ async fn demo_clone_on_write() {
     print_insight(
         "Cow delayed allocation until mutation!\n\
          The allocation only happened when we called to_mut().\n\
-         If we never mutated, it would stay borrowed (zero-cost)."
+         If we never mutated, it would stay borrowed (zero-cost).",
     );
 
     print_summary(
@@ -345,17 +368,15 @@ async fn demo_async_operations() {
         "Task 1: Database Fetch",
     ));
 
-    let task2 = task::spawn(async_process_string(
-        input.clone(),
-        "Task 2: API Call",
-    ));
+    let task2 = task::spawn(async_process_string(input.clone(), "Task 2: API Call"));
 
-    let task3 = task::spawn(async_process_string(
-        input.clone(),
-        "Task 3: File Read",
-    ));
+    let task3 = task::spawn(async_process_string(input.clone(), "Task 3: File Read"));
 
-    println!("\n{} {} concurrent tasks running", "🚀".bright_yellow(), "3".bright_green().bold());
+    println!(
+        "\n{} {} concurrent tasks running",
+        "🚀".bright_yellow(),
+        "3".bright_green().bold()
+    );
 
     let pb = show_operation_progress("Waiting for async tasks", 3);
 
@@ -367,9 +388,21 @@ async fn demo_async_operations() {
 
     match results {
         (Ok(r1), Ok(r2), Ok(r3)) => {
-            println!("   {} Task 1 result: {}", "▸".bright_cyan(), r1.bright_white());
-            println!("   {} Task 2 result: {}", "▸".bright_cyan(), r2.bright_white());
-            println!("   {} Task 3 result: {}", "▸".bright_cyan(), r3.bright_white());
+            println!(
+                "   {} Task 1 result: {}",
+                "▸".bright_cyan(),
+                r1.bright_white()
+            );
+            println!(
+                "   {} Task 2 result: {}",
+                "▸".bright_cyan(),
+                r2.bright_white()
+            );
+            println!(
+                "   {} Task 3 result: {}",
+                "▸".bright_cyan(),
+                r3.bright_white()
+            );
         }
         _ => error!("Some tasks failed!"),
     }
@@ -379,7 +412,7 @@ async fn demo_async_operations() {
          - Lightweight: Not OS threads, managed by runtime\n\
          - Concurrent: Run independently, can overlap I/O\n\
          - Work-stealing: Tokio scheduler balances load\n\
-         - Zero-cost: Compiled to state machines"
+         - Zero-cost: Compiled to state machines",
     );
 
     print_summary(
@@ -408,18 +441,35 @@ async fn demo_transformations() {
     println!("\n{}", "  ➤ Reversing string...".bright_cyan());
     let input = "Hello, World!";
     let result = manipulator.reverse(input);
-    println!("\n{} {} operation", "🔄".bright_cyan(), "REVERSE".bright_cyan().bold());
+    println!(
+        "\n{} {} operation",
+        "🔄".bright_cyan(),
+        "REVERSE".bright_cyan().bold()
+    );
     print_comparison("Reverse Operation", "Input", input, "Output", &result.value);
     result.display_timing();
 
     display_bytes(&result.value, "Reversed bytes");
 
     // Uppercase (demonstrates Unicode case mapping)
-    println!("\n{}", "  ➤ Converting to uppercase (Unicode-aware)...".bright_cyan());
+    println!(
+        "\n{}",
+        "  ➤ Converting to uppercase (Unicode-aware)...".bright_cyan()
+    );
     let unicode_input = "Straße"; // German street
     let result = manipulator.to_upper(unicode_input);
-    println!("\n{} {} operation", "🔤".bright_cyan(), "UPPERCASE".bright_cyan().bold());
-    print_comparison("Unicode Case Mapping", "Input", unicode_input, "Output", &result.value);
+    println!(
+        "\n{} {} operation",
+        "🔤".bright_cyan(),
+        "UPPERCASE".bright_cyan().bold()
+    );
+    print_comparison(
+        "Unicode Case Mapping",
+        "Input",
+        unicode_input,
+        "Output",
+        &result.value,
+    );
     result.display_timing();
 
     if result.value.len() != unicode_input.len() {
@@ -436,24 +486,46 @@ async fn demo_transformations() {
     // Repeat
     println!("\n{}", "  ➤ Repeating pattern...".bright_cyan());
     let result = manipulator.repeat("Rust ", 5);
-    println!("\n{} {} operation", "🔁".bright_cyan(), "REPEAT".bright_cyan().bold());
+    println!(
+        "\n{} {} operation",
+        "🔁".bright_cyan(),
+        "REPEAT".bright_cyan().bold()
+    );
     println!("   Pattern: {}", "'Rust '".bright_yellow());
     println!("   Count:   {}", "5".bright_green());
-    println!("   Output:  {}", format!("'{}'", result.value).bright_white());
-    print_meter("Capacity Efficiency", result.value.len() as f64, result.value.capacity() as f64, "bytes");
+    println!(
+        "   Output:  {}",
+        format!("'{}'", result.value).bright_white()
+    );
+    print_meter(
+        "Capacity Efficiency",
+        result.value.len() as f64,
+        result.value.capacity() as f64,
+        "bytes",
+    );
     result.display_timing();
 
     // Interleave
     println!("\n{}", "  ➤ Interleaving strings...".bright_cyan());
     let result = manipulator.interleave("RUST", "rust");
-    println!("\n{} {} operation", "🔀".bright_cyan(), "INTERLEAVE".bright_cyan().bold());
+    println!(
+        "\n{} {} operation",
+        "🔀".bright_cyan(),
+        "INTERLEAVE".bright_cyan().bold()
+    );
     println!("   String 1: {}", "'RUST'".bright_yellow());
     println!("   String 2: {}", "'rust'".bright_green());
-    println!("   Output:   {}", format!("'{}'", result.value).bright_white());
+    println!(
+        "   Output:   {}",
+        format!("'{}'", result.value).bright_white()
+    );
     result.display_timing();
 
     print_summary(
-        &format!("Transformations Complete - {} operations performed", manipulator.operations_count),
+        &format!(
+            "Transformations Complete - {} operations performed",
+            manipulator.operations_count
+        ),
         &[
             "Reverse: O(n) - iterates through all characters",
             "Uppercase: Unicode-aware, may change byte length",
@@ -478,7 +550,10 @@ async fn demo_unicode() {
     display_bytes(ascii, "ASCII string (1 byte/char)");
 
     // Multi-byte UTF-8
-    println!("\n{}", "  ➤ Examining emoji (multi-byte UTF-8)...".bright_cyan());
+    println!(
+        "\n{}",
+        "  ➤ Examining emoji (multi-byte UTF-8)...".bright_cyan()
+    );
     let emoji = "🦀🚀";
     display_bytes(emoji, "Emoji (4 bytes/char)");
 
@@ -488,21 +563,34 @@ async fn demo_unicode() {
     display_bytes(mixed, "Mixed ASCII + Emoji");
 
     // Demonstrate the danger of byte indexing
-    println!("\n{}", "╔════ BYTE vs CHAR INDEXING ════╗".bright_yellow().bold());
+    println!(
+        "\n{}",
+        "╔════ BYTE vs CHAR INDEXING ════╗".bright_yellow().bold()
+    );
     println!("   String: {}", format!("'{}'", mixed).bright_cyan());
-    println!("   Byte length: {} bytes", mixed.len().to_string().bright_red());
-    println!("   Char length: {} chars", mixed.chars().count().to_string().bright_green());
+    println!(
+        "   Byte length: {} bytes",
+        mixed.len().to_string().bright_red()
+    );
+    println!(
+        "   Char length: {} chars",
+        mixed.chars().count().to_string().bright_green()
+    );
 
     print_table(
         &["Index", "Character", "UTF-8 Bytes", "Byte Count"],
-        &mixed.chars().enumerate().map(|(i, ch)| {
-            vec![
-                i.to_string(),
-                format!("'{}'", ch),
-                format!("{:?}", ch.to_string().as_bytes()),
-                ch.len_utf8().to_string(),
-            ]
-        }).collect::<Vec<_>>(),
+        &mixed
+            .chars()
+            .enumerate()
+            .map(|(i, ch)| {
+                vec![
+                    i.to_string(),
+                    format!("'{}'", ch),
+                    format!("{:?}", ch.to_string().as_bytes()),
+                    ch.len_utf8().to_string(),
+                ]
+            })
+            .collect::<Vec<_>>(),
     );
 
     print_warning(
@@ -510,7 +598,7 @@ async fn demo_unicode() {
          \n\
          ❌ mixed[5] would panic (not on char boundary)\n\
          ✅ mixed.chars().nth(n) is safe\n\
-         ✅ Always iterate with .chars() for Unicode strings"
+         ✅ Always iterate with .chars() for Unicode strings",
     );
 
     print_insight(
@@ -518,7 +606,7 @@ async fn demo_unicode() {
          - ASCII characters: 1 byte (backward compatible)\n\
          - Most Latin/Cyrillic: 2 bytes\n\
          - Most Asian scripts: 3 bytes\n\
-         - Emoji and rare chars: 4 bytes"
+         - Emoji and rare chars: 4 bytes",
     );
 
     print_summary(
@@ -549,19 +637,84 @@ async fn main() {
     // Welcome banner
     print_gradient_header("🦀  THE INTROSPECTIVE STRING LABORATORY  🦀");
 
-    println!("\n{}", "┌────────────────────────────────────────────────────────────────────┐".bright_blue().bold());
-    println!("{}", "│                                                                    │".bright_blue().bold());
-    println!("{}", "│  Welcome to an interactive journey through Rust's string internals│".bright_blue().bold());
-    println!("{}", "│                                                                    │".bright_blue().bold());
-    println!("{}", "│  You will learn:                                                   │".bright_blue().bold());
-    println!("{}", "│    • How Rust manages string memory                                │".bright_blue().bold());
-    println!("{}", "│    • The cost of moves vs clones                                   │".bright_blue().bold());
-    println!("{}", "│    • Capacity management and reallocation                          │".bright_blue().bold());
-    println!("{}", "│    • Clone-on-write optimizations                                  │".bright_blue().bold());
-    println!("{}", "│    • Asynchronous string processing                                │".bright_blue().bold());
-    println!("{}", "│    • UTF-8 and Unicode handling                                    │".bright_blue().bold());
-    println!("{}", "│                                                                    │".bright_blue().bold());
-    println!("{}", "└────────────────────────────────────────────────────────────────────┘".bright_blue().bold());
+    println!(
+        "\n{}",
+        "┌────────────────────────────────────────────────────────────────────┐"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "│                                                                    │"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "│  Welcome to an interactive journey through Rust's string internals│"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "│                                                                    │"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "│  You will learn:                                                   │"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "│    • How Rust manages string memory                                │"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "│    • The cost of moves vs clones                                   │"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "│    • Capacity management and reallocation                          │"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "│    • Clone-on-write optimizations                                  │"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "│    • Asynchronous string processing                                │"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "│    • UTF-8 and Unicode handling                                    │"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "│                                                                    │"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "└────────────────────────────────────────────────────────────────────┘"
+            .bright_blue()
+            .bold()
+    );
 
     info!("Starting introspective string laboratory...");
     animate_thinking("Initializing laboratory environment", 800);
@@ -578,34 +731,162 @@ async fn main() {
     // Final summary
     print_section_header(8, "LABORATORY SESSION COMPLETE", "✨");
 
-    println!("\n{}", "╔══════════════════════════════════════════════════════════════════════╗".bright_green().bold());
-    println!("{}", "║                      🎓 KEY TAKEAWAYS                                 ║".bright_green().bold());
-    println!("{}", "╠══════════════════════════════════════════════════════════════════════╣".bright_green().bold());
-    println!("{}", "║                                                                      ║".bright_green().bold());
-    println!("{}", "║  1️⃣  String is heap-allocated, growable, and owned                   ║".bright_green().bold());
-    println!("{}", "║  2️⃣  &str is a borrowed slice (stack/heap/static memory)             ║".bright_green().bold());
-    println!("{}", "║  3️⃣  Moves are zero-cost, clones allocate and copy                   ║".bright_green().bold());
-    println!("{}", "║  4️⃣  Capacity management affects performance (realloc is O(n))       ║".bright_green().bold());
-    println!("{}", "║  5️⃣  Cow<str> delays allocation until mutation                       ║".bright_green().bold());
-    println!("{}", "║  6️⃣  Rust is UTF-8 aware - characters ≠ bytes                        ║".bright_green().bold());
-    println!("{}", "║  7️⃣  Async operations are lightweight and concurrent                 ║".bright_green().bold());
-    println!("{}", "║                                                                      ║".bright_green().bold());
-    println!("{}", "╚══════════════════════════════════════════════════════════════════════╝".bright_green().bold());
+    println!(
+        "\n{}",
+        "╔══════════════════════════════════════════════════════════════════════╗"
+            .bright_green()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║                      🎓 KEY TAKEAWAYS                                 ║"
+            .bright_green()
+            .bold()
+    );
+    println!(
+        "{}",
+        "╠══════════════════════════════════════════════════════════════════════╣"
+            .bright_green()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║                                                                      ║"
+            .bright_green()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║  1️⃣  String is heap-allocated, growable, and owned                   ║"
+            .bright_green()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║  2️⃣  &str is a borrowed slice (stack/heap/static memory)             ║"
+            .bright_green()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║  3️⃣  Moves are zero-cost, clones allocate and copy                   ║"
+            .bright_green()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║  4️⃣  Capacity management affects performance (realloc is O(n))       ║"
+            .bright_green()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║  5️⃣  Cow<str> delays allocation until mutation                       ║"
+            .bright_green()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║  6️⃣  Rust is UTF-8 aware - characters ≠ bytes                        ║"
+            .bright_green()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║  7️⃣  Async operations are lightweight and concurrent                 ║"
+            .bright_green()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║                                                                      ║"
+            .bright_green()
+            .bold()
+    );
+    println!(
+        "{}",
+        "╚══════════════════════════════════════════════════════════════════════╝"
+            .bright_green()
+            .bold()
+    );
 
-    println!("\n{}", "╔══════════════════════════════════════════════════════════════════════╗".bright_blue().bold());
-    println!("{}", "║                      🛡️  RUST GUARANTEES                              ║".bright_blue().bold());
-    println!("{}", "╠══════════════════════════════════════════════════════════════════════╣".bright_blue().bold());
-    println!("{}", "║                                                                      ║".bright_blue().bold());
-    println!("{}", "║  ✅ Memory safety without garbage collection                         ║".bright_blue().bold());
-    println!("{}", "║  ✅ Thread safety enforced at compile time                           ║".bright_blue().bold());
-    println!("{}", "║  ✅ Zero-cost abstractions                                           ║".bright_blue().bold());
-    println!("{}", "║  ✅ No null pointer exceptions                                       ║".bright_blue().bold());
-    println!("{}", "║  ✅ No data races                                                    ║".bright_blue().bold());
-    println!("{}", "║                                                                      ║".bright_blue().bold());
-    println!("{}", "╚══════════════════════════════════════════════════════════════════════╝".bright_blue().bold());
+    println!(
+        "\n{}",
+        "╔══════════════════════════════════════════════════════════════════════╗"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║                      🛡️  RUST GUARANTEES                              ║"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "╠══════════════════════════════════════════════════════════════════════╣"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║                                                                      ║"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║  ✅ Memory safety without garbage collection                         ║"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║  ✅ Thread safety enforced at compile time                           ║"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║  ✅ Zero-cost abstractions                                           ║"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║  ✅ No null pointer exceptions                                       ║"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║  ✅ No data races                                                    ║"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║                                                                      ║"
+            .bright_blue()
+            .bold()
+    );
+    println!(
+        "{}",
+        "╚══════════════════════════════════════════════════════════════════════╝"
+            .bright_blue()
+            .bold()
+    );
 
-    println!("\n\n{}", "🎉 Thank you for exploring Rust's string internals! 🎉".bright_magenta().bold());
-    println!("{}", "Keep learning, keep building, and keep being awesome! 🦀".bright_cyan());
+    println!(
+        "\n\n{}",
+        "🎉 Thank you for exploring Rust's string internals! 🎉"
+            .bright_magenta()
+            .bold()
+    );
+    println!(
+        "{}",
+        "Keep learning, keep building, and keep being awesome! 🦀".bright_cyan()
+    );
 
     info!("Laboratory session complete!");
 }

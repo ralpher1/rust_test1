@@ -40,13 +40,28 @@ pub fn print_section_header(number: usize, title: &str, icon: &str) {
 
     // Top border
     let width = 75;
-    println!("{}", "╔".bright_cyan().bold().to_string() + &"═".repeat(width).bright_cyan().bold().to_string() + &"╗".bright_cyan().bold().to_string());
+    println!(
+        "{}",
+        "╔".bright_cyan().bold().to_string()
+            + &"═".repeat(width).bright_cyan().bold().to_string()
+            + &"╗".bright_cyan().bold().to_string()
+    );
 
     // Title with padding
-    println!("{}", format!("║{:^width$}║", full_title, width = width).bright_yellow().bold());
+    println!(
+        "{}",
+        format!("║{:^width$}║", full_title, width = width)
+            .bright_yellow()
+            .bold()
+    );
 
     // Bottom border
-    println!("{}", "╚".bright_cyan().bold().to_string() + &"═".repeat(width).bright_cyan().bold().to_string() + &"╝".bright_cyan().bold().to_string());
+    println!(
+        "{}",
+        "╚".bright_cyan().bold().to_string()
+            + &"═".repeat(width).bright_cyan().bold().to_string()
+            + &"╝".bright_cyan().bold().to_string()
+    );
     println!();
 }
 
@@ -74,8 +89,12 @@ pub fn print_memory_diagram(label: &str, ptr: usize, len: usize, cap: usize, dat
     let filled = "█".repeat(len.min(40));
     let empty = "░".repeat((cap - len).min(40));
     println!("│   │ {} {} │", filled.bright_green(), empty.bright_black());
-    println!("│   │ Data: {:40} │", format!("\"{}\"", data.chars().take(38).collect::<String>()));
-    println!("│   │ Used: {} / {} bytes ({:.1}% full) │",
+    println!(
+        "│   │ Data: {:40} │",
+        format!("\"{}\"", data.chars().take(38).collect::<String>())
+    );
+    println!(
+        "│   │ Used: {} / {} bytes ({:.1}% full) │",
         len.to_string().bright_green(),
         cap.to_string().bright_yellow(),
         (len as f64 / cap as f64 * 100.0)
@@ -92,7 +111,10 @@ pub fn print_comparison(
     after_label: &str,
     after_value: &str,
 ) {
-    println!("\n{}", format!("╔═══ {} ═══╗", label).bright_magenta().bold());
+    println!(
+        "\n{}",
+        format!("╔═══ {} ═══╗", label).bright_magenta().bold()
+    );
     println!();
 
     // Before state
@@ -112,29 +134,54 @@ pub fn print_comparison(
     println!("  │ {:<28} │", after_value);
     println!("  └──────────────────────────────┘");
     println!();
-    println!("{}", "╚═══════════════════════════════════╝".bright_magenta().bold());
+    println!(
+        "{}",
+        "╚═══════════════════════════════════╝"
+            .bright_magenta()
+            .bold()
+    );
 }
 
 /// Shows a highlighted insight box
 pub fn print_insight(insight: &str) {
-    println!("\n{}", "┌─ 💡 KEY INSIGHT ─────────────────────────────────────────────┐".bright_green().bold());
+    println!(
+        "\n{}",
+        "┌─ 💡 KEY INSIGHT ─────────────────────────────────────────────┐"
+            .bright_green()
+            .bold()
+    );
 
     for line in insight.lines() {
         println!("{}", format!("│  {:<60}│", line).bright_white());
     }
 
-    println!("{}", "└──────────────────────────────────────────────────────────────┘".bright_green().bold());
+    println!(
+        "{}",
+        "└──────────────────────────────────────────────────────────────┘"
+            .bright_green()
+            .bold()
+    );
 }
 
 /// Shows a warning box
 pub fn print_warning(warning: &str) {
-    println!("\n{}", "┌─ ⚠️  WARNING ───────────────────────────────────────────────────┐".bright_yellow().bold());
+    println!(
+        "\n{}",
+        "┌─ ⚠️  WARNING ───────────────────────────────────────────────────┐"
+            .bright_yellow()
+            .bold()
+    );
 
     for line in warning.lines() {
         println!("{}", format!("│  {:<60}│", line).bright_yellow());
     }
 
-    println!("{}", "└──────────────────────────────────────────────────────────────┘".bright_yellow().bold());
+    println!(
+        "{}",
+        "└──────────────────────────────────────────────────────────────┘"
+            .bright_yellow()
+            .bold()
+    );
 }
 
 /// Shows an animated progress bar for operations
@@ -158,11 +205,19 @@ pub fn animate_thinking(message: &str, duration_ms: u64) {
     print!("  ");
     for i in 0..iterations {
         let frame = frames[i as usize % frames.len()];
-        print!("\r  {} {} ", frame.bright_cyan().bold(), message.bright_white());
+        print!(
+            "\r  {} {} ",
+            frame.bright_cyan().bold(),
+            message.bright_white()
+        );
         stdout().flush().unwrap();
         thread::sleep(Duration::from_millis(100));
     }
-    println!("\r  {} {}  ", "✓".bright_green().bold(), message.bright_white());
+    println!(
+        "\r  {} {}  ",
+        "✓".bright_green().bold(),
+        message.bright_white()
+    );
 }
 
 /// Creates a data flow visualization
@@ -185,7 +240,12 @@ pub fn print_data_flow(steps: &[(&str, &str)]) {
             _ => colored::Color::BrightYellow,
         };
 
-        println!("  {} {} {}", icon.color(color).bold(), step.color(color), description.bright_white());
+        println!(
+            "  {} {} {}",
+            icon.color(color).bold(),
+            step.color(color),
+            description.bright_white()
+        );
 
         if i < steps.len() - 1 {
             println!("  {}", "│".bright_black());
@@ -211,7 +271,12 @@ pub fn print_summary(title: &str, points: &[&str]) {
 pub fn prompt_continue() {
     println!();
     println!("{}", "─".repeat(75).bright_black());
-    println!("{}", "  Press Enter to continue to the next section...".bright_white().dimmed());
+    println!(
+        "{}",
+        "  Press Enter to continue to the next section..."
+            .bright_white()
+            .dimmed()
+    );
     println!("{}", "─".repeat(75).bright_black());
 
     let mut input = String::new();
@@ -225,7 +290,11 @@ pub fn print_table(headers: &[&str], rows: &[Vec<String>]) {
         .enumerate()
         .map(|(i, h)| {
             let header_len = h.len();
-            let max_row_len = rows.iter().map(|r| r.get(i).map(|s| s.len()).unwrap_or(0)).max().unwrap_or(0);
+            let max_row_len = rows
+                .iter()
+                .map(|r| r.get(i).map(|s| s.len()).unwrap_or(0))
+                .max()
+                .unwrap_or(0);
             header_len.max(max_row_len)
         })
         .collect();
