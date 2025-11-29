@@ -109,14 +109,14 @@ pub fn spectacular_startup_animation() {
 
 /// Matrix-style code rain effect
 fn matrix_rain_effect(duration_iterations: u32) {
-    let chars = "01アイウエオカキクケコサシスセソ";
+    let chars: Vec<char> = "01アイウエオカキクケコサシスセソ".chars().collect();
     let mut rng = rand::thread_rng();
 
     for _ in 0..duration_iterations {
         let line: String = (0..80)
             .map(|_| {
                 let idx = rng.gen_range(0..chars.len());
-                chars.chars().nth(idx).unwrap()
+                chars[idx]
             })
             .collect();
 
