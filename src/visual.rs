@@ -376,3 +376,291 @@ pub fn print_meter(label: &str, value: f64, max_value: f64, unit: &str) {
         unit
     );
 }
+
+/// Creates an enhanced 3D-effect box with double borders
+pub fn print_3d_box(title: &str, content: &[&str]) {
+    let max_width = content
+        .iter()
+        .map(|s| s.len())
+        .max()
+        .unwrap_or(60)
+        .max(title.len() + 4);
+
+    // Top shadow
+    println!("   {}", "▓".repeat(max_width + 4).bright_black());
+
+    // Top border
+    println!(
+        "  {}{}{}{}",
+        "╔".bright_cyan().bold(),
+        "═".repeat(max_width + 2).bright_cyan().bold(),
+        "╗".bright_cyan().bold(),
+        "▓".bright_black()
+    );
+
+    // Title
+    println!(
+        "  {}{}{}{}",
+        "║".bright_cyan().bold(),
+        format!(" {:<width$} ", title.bright_yellow().bold(), width = max_width),
+        "║".bright_cyan().bold(),
+        "▓".bright_black()
+    );
+
+    // Separator
+    println!(
+        "  {}{}{}{}",
+        "╠".bright_cyan().bold(),
+        "═".repeat(max_width + 2).bright_cyan().bold(),
+        "╣".bright_cyan().bold(),
+        "▓".bright_black()
+    );
+
+    // Content
+    for line in content {
+        println!(
+            "  {}{}{}{}",
+            "║".bright_cyan().bold(),
+            format!(" {:<width$} ", line, width = max_width),
+            "║".bright_cyan().bold(),
+            "▓".bright_black()
+        );
+    }
+
+    // Bottom border
+    println!(
+        "  {}{}{}{}",
+        "╚".bright_cyan().bold(),
+        "═".repeat(max_width + 2).bright_cyan().bold(),
+        "╝".bright_cyan().bold(),
+        "▓".bright_black()
+    );
+    println!("   {}", "▓".repeat(max_width + 4).bright_black());
+}
+
+/// Creates a spectacular banner with effects
+pub fn print_spectacular_banner(text: &str) {
+    let colors = [
+        colored::Color::BrightRed,
+        colored::Color::BrightYellow,
+        colored::Color::BrightGreen,
+        colored::Color::BrightCyan,
+        colored::Color::BrightBlue,
+        colored::Color::BrightMagenta,
+    ];
+
+    println!("\n");
+
+    // Top border with gradient
+    let border = "━".repeat(80);
+    for (i, chunk) in border.chars().collect::<Vec<_>>().chunks(14).enumerate() {
+        let color = colors[i % colors.len()];
+        print!("{}", chunk.iter().collect::<String>().color(color).bold());
+    }
+    println!();
+
+    // Text with rainbow effect
+    print!("    ");
+    for (i, ch) in text.chars().enumerate() {
+        let color = colors[i % colors.len()];
+        print!("{}", ch.to_string().color(color).bold());
+    }
+    println!();
+
+    // Bottom border with gradient
+    for (i, chunk) in border.chars().collect::<Vec<_>>().chunks(14).enumerate() {
+        let color = colors[i % colors.len()];
+        print!("{}", chunk.iter().collect::<String>().color(color).bold());
+    }
+    println!("\n");
+}
+
+/// Display a timeline visualization
+pub fn print_timeline(events: &[(&str, &str)]) {
+    println!("\n{}", "TIMELINE VISUALIZATION:".bright_blue().bold());
+    println!("{}", "═".repeat(75).bright_blue());
+
+    for (i, (time, event)) in events.iter().enumerate() {
+        let connector = if i == 0 {
+            "┬"
+        } else if i == events.len() - 1 {
+            "└"
+        } else {
+            "├"
+        };
+
+        let color = match i % 6 {
+            0 => colored::Color::BrightRed,
+            1 => colored::Color::BrightYellow,
+            2 => colored::Color::BrightGreen,
+            3 => colored::Color::BrightCyan,
+            4 => colored::Color::BrightBlue,
+            _ => colored::Color::BrightMagenta,
+        };
+
+        println!(
+            "{}{}─ {} {} {}",
+            connector.color(color).bold(),
+            "─".repeat(3).color(color),
+            time.color(color).bold(),
+            "│".bright_black(),
+            event.bright_white()
+        );
+
+        if i < events.len() - 1 {
+            println!("{}    {}", "│".color(color), "│".bright_black());
+        }
+    }
+    println!("{}", "═".repeat(75).bright_blue());
+}
+
+/// Create an animated ASCII art logo
+pub fn print_animated_logo() {
+    let logo = vec![
+        "  ██████╗ ██╗   ██╗███████╗████████╗",
+        "  ██╔══██╗██║   ██║██╔════╝╚══██╔══╝",
+        "  ██████╔╝██║   ██║███████╗   ██║   ",
+        "  ██╔══██╗██║   ██║╚════██║   ██║   ",
+        "  ██║  ██║╚██████╔╝███████║   ██║   ",
+        "  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝   ",
+    ];
+
+    let colors = [
+        colored::Color::BrightRed,
+        colored::Color::BrightYellow,
+        colored::Color::BrightGreen,
+        colored::Color::BrightCyan,
+        colored::Color::BrightBlue,
+        colored::Color::BrightMagenta,
+    ];
+
+    println!();
+    for (i, line) in logo.iter().enumerate() {
+        let color = colors[i % colors.len()];
+        println!("{}", line.color(color).bold());
+        stdout().flush().unwrap();
+        thread::sleep(Duration::from_millis(100));
+    }
+    println!();
+}
+
+/// Display a fancy progress wheel
+pub fn print_progress_wheel(label: &str, percentage: f64) {
+    let segments = 8;
+    let filled_segments = ((percentage / 100.0) * segments as f64) as usize;
+
+    let _wheel_chars = ["◜", "◝", "◞", "◟", "◜", "◝", "◞", "◟"];
+    let mut display = String::new();
+
+    for i in 0..segments {
+        if i < filled_segments {
+            display.push_str(&"●".bright_green().bold().to_string());
+        } else {
+            display.push_str(&"○".bright_black().to_string());
+        }
+    }
+
+    println!(
+        "  {} [{}] {:.1}%",
+        label.bright_white().bold(),
+        display,
+        percentage
+    );
+}
+
+/// Display memory as a visual grid
+pub fn print_memory_grid(data: &[u8], label: &str) {
+    println!("\n{} {}", "🔲".bright_cyan(), label.bright_white().bold());
+    println!("{}", "┌".to_string() + &"─".repeat(67) + "┐");
+
+    for (_i, chunk) in data.chunks(16).take(4).enumerate() {
+        print!("│ ");
+        for (_j, byte) in chunk.iter().enumerate() {
+            let color = match byte {
+                0x00..=0x40 => colored::Color::BrightBlue,
+                0x41..=0x7A => colored::Color::BrightGreen,
+                0x7B..=0xBF => colored::Color::BrightYellow,
+                _ => colored::Color::BrightRed,
+            };
+            print!("{} ", format!("{:02X}", byte).color(color));
+        }
+        println!(" │");
+    }
+
+    if data.len() > 64 {
+        println!("│ {} more bytes... │", format!("{:<51}", data.len() - 64));
+    }
+
+    println!("{}", "└".to_string() + &"─".repeat(67) + "┘");
+}
+
+/// Create a dramatic reveal effect
+pub fn dramatic_reveal(text: &str, delay_ms: u64) {
+    print!("  ");
+    for ch in text.chars() {
+        print!("{}", ch.to_string().bright_white().bold());
+        stdout().flush().unwrap();
+        thread::sleep(Duration::from_millis(delay_ms));
+    }
+    println!();
+}
+
+/// Display a live stats dashboard
+pub fn print_live_dashboard(stats: &[(&str, &str, f64)]) {
+    println!("\n");
+    println!(
+        "{}",
+        "╔══════════════════════════════════════════════════════════════════════════╗"
+            .bright_green()
+            .bold()
+    );
+    println!(
+        "{}",
+        format!(
+            "║{:^78}║",
+            "⚡ LIVE PERFORMANCE DASHBOARD ⚡".bright_yellow().bold()
+        )
+        .bright_green()
+        .bold()
+    );
+    println!(
+        "{}",
+        "╠══════════════════════════════════════════════════════════════════════════╣"
+            .bright_green()
+            .bold()
+    );
+
+    for (metric, value, percentage) in stats {
+        let bar_width = (percentage * 0.3) as usize;
+        let bar = "█".repeat(bar_width);
+
+        let color = if *percentage < 33.0 {
+            colored::Color::BrightGreen
+        } else if *percentage < 66.0 {
+            colored::Color::BrightYellow
+        } else {
+            colored::Color::BrightRed
+        };
+
+        println!(
+            "{}",
+            format!(
+                "║ {:<20} {:>12} [{}{}] {:>5.1}% ║",
+                metric.bright_cyan(),
+                value.bright_white().bold(),
+                bar.color(color),
+                "░".repeat(30 - bar_width).bright_black(),
+                percentage
+            )
+            .bright_green()
+            .bold()
+        );
+    }
+
+    println!(
+        "{}",
+        "╚══════════════════════════════════════════════════════════════════════════╝"
+            .bright_green()
+            .bold()
+    );
+}

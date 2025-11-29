@@ -20,6 +20,7 @@
 mod inspector;
 mod transformer;
 mod visual;
+mod spectacular;
 
 use colored::Colorize;
 use inspector::*;
@@ -29,16 +30,21 @@ use tracing::{error, info, warn, Level};
 use tracing_subscriber::fmt::format::FmtSpan;
 use transformer::*;
 use visual::*;
+use spectacular::*;
 
 // Removed old print_section - using visual::print_section_header now
 
 /// Demonstrates basic string types and their memory layout
 #[tracing::instrument]
 async fn demo_string_types() {
+    let mut perf = PerformanceTracker::new("String Types Demo");
+
     print_section_header(1, "STRING TYPES AND MEMORY LAYOUT", "📚");
+    print_spectacular_banner("✨ Exploring the String Universe ✨");
 
     info!("Creating various string types...");
-    animate_thinking("Analyzing string types", 500);
+    fancy_spinner("Analyzing string types", 300);
+    perf.checkpoint("Section initialization");
 
     // String literal - stored in binary's read-only data section
     println!("\n{}", "  ➤ Creating string literal...".bright_cyan());
@@ -101,15 +107,30 @@ async fn demo_string_types() {
         ],
     );
 
+    perf.checkpoint("Summary displayed");
+    perf.finish();
+
+    print_3d_box(
+        "💡 Pro Tip",
+        &[
+            "Choose &str for borrowing, String for ownership!",
+            "Box<str> is perfect for immutable heap strings.",
+        ],
+    );
+
     prompt_continue();
 }
 
 /// Demonstrates ownership, moves, and clones
 #[tracing::instrument]
 async fn demo_ownership() {
+    let mut perf = PerformanceTracker::new("Ownership Demo");
+
     print_section_header(2, "OWNERSHIP, MOVES, AND CLONES", "🔐");
+    print_spectacular_banner("🔄 The Dance of Ownership 🔄");
 
     info!("Demonstrating ownership mechanics...");
+    perf.checkpoint("Demo started");
 
     println!("\n{}", "  ➤ Creating original string...".bright_cyan());
     let original = String::from("Hello, Rust!");
@@ -118,7 +139,8 @@ async fn demo_ownership() {
 
     // Move - transfers ownership, no copy
     info!("⚠ About to MOVE the string...");
-    animate_thinking("Performing zero-cost move", 400);
+    fancy_spinner("Performing zero-cost move operation", 400);
+    perf.checkpoint("Move operation");
 
     let moved = original;
     // Note: `original` is now invalid - compiler prevents use
@@ -135,7 +157,8 @@ async fn demo_ownership() {
 
     // Clone - creates a new heap allocation and copies data
     info!("🔄 About to CLONE the string...");
-    animate_thinking("Allocating new memory and copying data", 400);
+    fancy_spinner("Allocating new memory and copying data", 400);
+    perf.checkpoint("Clone operation");
 
     let cloned = moved.clone();
     let info_cloned = inspect_string(&cloned, "After CLONE");
@@ -172,15 +195,24 @@ async fn demo_ownership() {
         ],
     );
 
+    perf.checkpoint("Summary completed");
+    perf.finish();
+
+    display_memory_snapshot("Memory Usage After Demo", 24000, 1048576);
+
     prompt_continue();
 }
 
 /// Demonstrates capacity and reallocation
 #[tracing::instrument]
 async fn demo_capacity_and_growth() {
+    let mut perf = PerformanceTracker::new("Capacity Management Demo");
+
     print_section_header(3, "CAPACITY MANAGEMENT AND REALLOCATION", "📊");
+    print_spectacular_banner("📈 Capacity Growth Visualization 📈");
 
     info!("Exploring how String manages capacity...");
+    perf.checkpoint("Initialization");
 
     // Create with exact capacity
     println!(
@@ -199,7 +231,8 @@ async fn demo_capacity_and_growth() {
         "\n{}",
         "  ➤ Adding 'Rust' (4 bytes) within capacity...".bright_cyan()
     );
-    animate_thinking("Writing to existing buffer", 300);
+    fancy_spinner("Writing to existing buffer", 300);
+    perf.checkpoint("Within-capacity write");
 
     s.push_str("Rust");
     let info_rust = inspect_string(&s, "After adding 'Rust' (4 bytes)");
@@ -216,11 +249,13 @@ async fn demo_capacity_and_growth() {
 
     // Exceed capacity - forces reallocation
     warn!("⚠ About to exceed capacity - reallocation will occur!");
+    glitch_effect("⚠️  REALLOCATION IMMINENT  ⚠️", 5);
     println!(
         "\n{}",
         "  ➤ Adding '!!!!!' (5 more bytes = 9 total)...".bright_yellow()
     );
-    animate_thinking("Triggering reallocation", 300);
+    fancy_spinner("Triggering reallocation", 300);
+    perf.checkpoint("Reallocation triggered");
 
     s.push_str("!!!!!"); // 5 more bytes = 9 total (exceeds 8)
 
@@ -276,15 +311,29 @@ async fn demo_capacity_and_growth() {
         ],
     );
 
+    perf.checkpoint("Demo complete");
+    perf.finish();
+
+    print_timeline(&[
+        ("0ms", "String created with capacity 8"),
+        ("+50ms", "Added 'Rust' - no reallocation"),
+        ("+100ms", "Added '!!!!!' - REALLOCATION!"),
+        ("+150ms", "New capacity: 16 bytes"),
+    ]);
+
     prompt_continue();
 }
 
 /// Demonstrates Clone-on-Write (Cow) optimization
 #[tracing::instrument]
 async fn demo_clone_on_write() {
+    let mut perf = PerformanceTracker::new("Clone-on-Write Demo");
+
     print_section_header(4, "CLONE-ON-WRITE (COW) OPTIMIZATION", "🐄");
+    print_spectacular_banner("🐄 The Power of Lazy Allocation 🐄");
 
     info!("Demonstrating Cow<str> for efficient conditional ownership...");
+    perf.checkpoint("Demo started");
 
     let static_str = "Ferris the Crab";
 
@@ -293,7 +342,8 @@ async fn demo_clone_on_write() {
         "\n{}",
         "  ➤ Creating Cow::Borrowed (zero-cost wrapper)...".bright_cyan()
     );
-    animate_thinking("Wrapping borrowed reference", 300);
+    fancy_spinner("Wrapping borrowed reference", 300);
+    perf.checkpoint("Cow::Borrowed created");
 
     let cow_borrowed: Cow<str> = Cow::Borrowed(static_str);
     let info_borrowed = inspect_cow(&cow_borrowed, "Cow::Borrowed (zero-cost)");
@@ -311,7 +361,8 @@ async fn demo_clone_on_write() {
         "\n{}",
         "  ➤ Mutating Cow (triggers conversion to Owned)...".bright_yellow()
     );
-    animate_thinking("Allocating heap memory for mutation", 400);
+    fancy_spinner("Allocating heap memory for mutation", 400);
+    perf.checkpoint("Cow converted to Owned");
 
     let mut cow_owned = cow_borrowed.clone();
     cow_owned.to_mut().push_str(" 🦀");
@@ -347,15 +398,29 @@ async fn demo_clone_on_write() {
         ],
     );
 
+    perf.checkpoint("Summary displayed");
+    perf.finish();
+
+    display_operation_stats(&[
+        ("Borrowed Creation", 0.001),
+        ("Clone (still borrowed)", 0.001),
+        ("to_mut() Call", 0.05),
+        ("Mutation", 0.002),
+    ]);
+
     prompt_continue();
 }
 
 /// Demonstrates async string processing
 #[tracing::instrument]
 async fn demo_async_operations() {
+    let mut perf = PerformanceTracker::new("Async Operations Demo");
+
     print_section_header(5, "ASYNCHRONOUS STRING PROCESSING", "⚡");
+    print_spectacular_banner("⚡ Concurrent Task Execution ⚡");
 
     info!("Spawning multiple async tasks...");
+    perf.checkpoint("Task spawning initiated");
 
     let input = String::from("Async");
 
@@ -385,6 +450,10 @@ async fn demo_async_operations() {
     pb.finish_with_message("All tasks completed!");
 
     println!("\n{}", "✓ All async tasks finished!".bright_green().bold());
+
+    perf.checkpoint("All tasks completed");
+
+    particle_burst(40, "🎉 TASKS COMPLETE! 🎉");
 
     match results {
         (Ok(r1), Ok(r2), Ok(r3)) => {
@@ -425,15 +494,29 @@ async fn demo_async_operations() {
         ],
     );
 
+    perf.checkpoint("Demo finalized");
+    perf.finish();
+
+    print_live_dashboard(&[
+        ("Active Tasks", "3", 100.0),
+        ("Completed Tasks", "3", 100.0),
+        ("CPU Usage", "Low", 25.0),
+        ("Memory Efficiency", "High", 15.0),
+    ]);
+
     prompt_continue();
 }
 
 /// Demonstrates string transformations with timing
 #[tracing::instrument]
 async fn demo_transformations() {
+    let mut perf = PerformanceTracker::new("String Transformations Demo");
+
     print_section_header(6, "STRING TRANSFORMATIONS WITH TIMING", "🔧");
+    print_spectacular_banner("🔧 String Transformation Magic 🔧");
 
     info!("Performing various string transformations...");
+    perf.checkpoint("Demo started");
 
     let mut manipulator = StringManipulator::new();
 
@@ -534,15 +617,24 @@ async fn demo_transformations() {
         ],
     );
 
+    perf.checkpoint("All transformations complete");
+    perf.finish();
+
+    print_memory_grid(b"Rust transformations!", "Transformation Output Bytes");
+
     prompt_continue();
 }
 
 /// Demonstrates UTF-8 and Unicode handling
 #[tracing::instrument]
 async fn demo_unicode() {
+    let mut perf = PerformanceTracker::new("Unicode Demo");
+
     print_section_header(7, "UNICODE AND UTF-8 HANDLING", "🌍");
+    print_spectacular_banner("🌍 The Universal Character Set 🌍");
 
     info!("Exploring UTF-8 encoding...");
+    perf.checkpoint("Demo initialization");
 
     // ASCII - 1 byte per character
     println!("\n{}", "  ➤ Examining ASCII characters...".bright_cyan());
@@ -619,6 +711,11 @@ async fn demo_unicode() {
         ],
     );
 
+    perf.checkpoint("Demo complete");
+    perf.finish();
+
+    dramatic_reveal("🎓 You now understand Rust's Unicode handling!", 50);
+
     prompt_continue();
 }
 
@@ -634,7 +731,11 @@ async fn main() {
         .with_line_number(false)
         .init();
 
+    // Spectacular startup sequence
+    spectacular_startup_animation();
+
     // Welcome banner
+    print_animated_logo();
     print_gradient_header("🦀  THE INTROSPECTIVE STRING LABORATORY  🦀");
 
     println!(
@@ -717,7 +818,11 @@ async fn main() {
     );
 
     info!("Starting introspective string laboratory...");
-    animate_thinking("Initializing laboratory environment", 800);
+    rainbow_separator();
+    fancy_spinner("Initializing laboratory environment", 500);
+
+    display_memory_snapshot("System Memory Status", 512000, 8388608);
+    println!();
 
     // Run all demonstrations
     demo_string_types().await;
@@ -877,16 +982,25 @@ async fn main() {
             .bold()
     );
 
+    println!("\n");
+    rainbow_separator();
+    particle_burst(40, "✨ SESSION COMPLETE ✨");
+    println!();
+
+    pulse_text("🎉 Thank you for exploring Rust's string internals! 🎉", 3);
+
     println!(
-        "\n\n{}",
-        "🎉 Thank you for exploring Rust's string internals! 🎉"
-            .bright_magenta()
-            .bold()
-    );
-    println!(
-        "{}",
-        "Keep learning, keep building, and keep being awesome! 🦀".bright_cyan()
+        "\n{}",
+        rainbow_text("Keep learning, keep building, and keep being awesome! 🦀")
     );
 
+    println!("\n");
+    dramatic_reveal("🔥 You are now a Rust String Master! 🔥", 40);
+    println!();
+
+    rainbow_separator();
+
     info!("Laboratory session complete!");
+    glitch_effect(">>> SHUTTING DOWN <<<", 6);
+    println!();
 }

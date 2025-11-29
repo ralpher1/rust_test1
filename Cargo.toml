@@ -27,7 +27,10 @@ indicatif = "0.17"
 crossterm = "0.27"
 
 # High-precision timing
+chrono = "0.4"
 
+# Random for effects
+rand = "0.8"
 
 [profile.dev]
 # Enable some optimizations even in dev for better performance demonstrations
