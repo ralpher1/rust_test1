@@ -7,8 +7,8 @@
 //! - Animated effects and transitions
 //! - Rainbow gradients and color effects
 
-use colored::Colorize;
 use chrono::Local;
+use colored::Colorize;
 use rand::Rng;
 use std::io::{stdout, Write};
 use std::thread;
@@ -47,6 +47,7 @@ impl PerformanceTracker {
         let total_time = self.start_time.elapsed();
         log_performance_complete(&self.operation_name, total_time);
         display_performance_summary(self);
+        celebrate_performance(&self.operation_name, total_time);
     }
 }
 
@@ -138,7 +139,11 @@ fn animate_loading_message(msg: &str, duration_ms: u64) {
     for i in 0..iterations {
         let frame = frames[i as usize % frames.len()];
         let color = colors[i as usize % colors.len()];
-        print!("\r  {} {}   ", frame.color(color).bold(), msg.bright_white());
+        print!(
+            "\r  {} {}   ",
+            frame.color(color).bold(),
+            msg.bright_white()
+        );
         stdout().flush().unwrap();
         thread::sleep(Duration::from_millis(50));
     }
@@ -354,6 +359,48 @@ fn display_performance_summary(tracker: &PerformanceTracker) {
     );
 }
 
+/// Add a short celebratory burst after each performance summary
+fn celebrate_performance(operation: &str, total_time: Duration) {
+    let palette = [
+        colored::Color::BrightCyan,
+        colored::Color::BrightMagenta,
+        colored::Color::BrightYellow,
+        colored::Color::BrightGreen,
+    ];
+
+    let shimmer: String = (0..32)
+        .map(|i| "█".color(palette[i % palette.len()]).bold().to_string())
+        .collect();
+
+    println!(
+        "{}",
+        "╔═══════════════✨ PERFORMANCE SPOTLIGHT ✨════════════════╗"
+            .bright_magenta()
+            .bold()
+    );
+    println!(
+        "{}",
+        format!(
+            "║ 🚀 {:<45} ║",
+            format!(
+                "{} completed in {:>4} ms",
+                operation,
+                total_time.as_millis()
+            )
+            .bright_white()
+            .to_string()
+        )
+        .bright_white()
+    );
+    println!("{}", format!("║ {} ║", shimmer).bright_white());
+    println!(
+        "{}",
+        "╚══════════════════════════════════════════════════════════╝"
+            .bright_magenta()
+            .bold()
+    );
+}
+
 /// Display a live memory usage visualization
 pub fn display_memory_snapshot(label: &str, used_bytes: usize, total_bytes: usize) {
     let used_mb = used_bytes as f64 / 1_048_576.0;
@@ -413,13 +460,19 @@ pub fn particle_burst(center_x: usize, message: &str) {
     ];
 
     // Center message
-    println!("{:>width$}", message.bright_white().bold(), width = center_x + message.len() / 2);
+    println!(
+        "{:>width$}",
+        message.bright_white().bold(),
+        width = center_x + message.len() / 2
+    );
 
     // Burst animation
     for frame in 0..10 {
         let mut line = " ".repeat(80);
         for _ in 0..20 {
-            let pos = rand::thread_rng().gen_range(center_x.saturating_sub(20)..center_x + 20).min(79);
+            let pos = rand::thread_rng()
+                .gen_range(center_x.saturating_sub(20)..center_x + 20)
+                .min(79);
             let particle = particles[rand::thread_rng().gen_range(0..particles.len())];
             let _color = colors[rand::thread_rng().gen_range(0..colors.len())];
 
@@ -439,9 +492,7 @@ pub fn particle_burst(center_x: usize, message: &str) {
 
 /// Progress spinner with fancy effects
 pub fn fancy_spinner(message: &str, duration_ms: u64) {
-    let frames = [
-        "◐", "◓", "◑", "◒",
-    ];
+    let frames = ["◐", "◓", "◑", "◒"];
     let colors = [
         colored::Color::BrightRed,
         colored::Color::BrightYellow,
@@ -466,7 +517,11 @@ pub fn fancy_spinner(message: &str, duration_ms: u64) {
         stdout().flush().unwrap();
         thread::sleep(Duration::from_millis(75));
     }
-    println!("\r  {} {} ✓", "✓".bright_green().bold(), message.bright_white());
+    println!(
+        "\r  {} {} ✓",
+        "✓".bright_green().bold(),
+        message.bright_white()
+    );
 }
 
 /// Display operation statistics in a cool ASCII graph
