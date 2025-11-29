@@ -81,7 +81,11 @@ impl fmt::Display for StringMemoryInfo {
                 self.capacity.to_string().bright_yellow(),
                 "💾".bright_yellow(),
                 self.data_ptr,
-                if self.is_heap_allocated { "Heap Allocated ✓".bright_green() } else { "Static Memory".bright_blue() },
+                if self.is_heap_allocated {
+                    "Heap Allocated ✓".bright_green()
+                } else {
+                    "Static Memory".bright_blue()
+                },
                 memory_bar,
                 usage_percent,
                 "✓".bright_green(),
@@ -89,7 +93,10 @@ impl fmt::Display for StringMemoryInfo {
                 "📊".bright_yellow(),
                 self.capacity.to_string().bright_yellow(),
                 "⚠".bright_red(),
-                self.capacity.saturating_sub(self.length).to_string().bright_red(),
+                self.capacity
+                    .saturating_sub(self.length)
+                    .to_string()
+                    .bright_red(),
                 "📝".bright_white(),
                 self.description.bright_white().bold()
             )
@@ -124,9 +131,18 @@ pub fn inspect_string(s: &String, description: &str) -> StringMemoryInfo {
 /// - It's 16 bytes on 64-bit systems (8 bytes ptr + 8 bytes len)
 /// - The data it points to could be anywhere: stack, heap, or static memory
 /// - String literals live in the binary's read-only data section
-pub fn inspect_str(s: &str, description: &str) -> StringMemoryInfo {
+///
+/// `static_ref` should be provided when you have the original string literal so
+/// the function can reliably determine whether the slice points to static
+/// memory. Without a reference, the function cannot differentiate static and
+/// heap-backed slices.
+pub fn inspect_str(
+    s: &str,
+    description: &str,
+    static_ref: Option<&'static str>,
+) -> StringMemoryInfo {
     // Determine if this is a string literal (in static memory) or elsewhere
-    let is_static = is_static_str(s, None);
+    let is_static = is_static_str(s, static_ref);
 
     StringMemoryInfo {
         data_ptr: s.as_ptr() as usize,
@@ -137,7 +153,11 @@ pub fn inspect_str(s: &str, description: &str) -> StringMemoryInfo {
         description: format!(
             "{} | Location: {}",
             description,
-            if is_static { "Static (Binary)" } else { "Dynamic" }
+            if is_static {
+                "Static (Binary)"
+            } else {
+                "Dynamic"
+            }
         ),
     }
 }
@@ -168,12 +188,8 @@ pub fn inspect_boxed_str(s: &Box<str>, description: &str) -> StringMemoryInfo {
 /// - Delays allocation until mutation is needed
 pub fn inspect_cow(s: &Cow<str>, description: &str) -> StringMemoryInfo {
     let (is_owned, data_ptr, capacity) = match s {
-        Cow::Borrowed(str_ref) => {
-            (false, str_ref.as_ptr() as usize, str_ref.len())
-        }
-        Cow::Owned(string) => {
-            (true, string.as_ptr() as usize, string.capacity())
-        }
+        Cow::Borrowed(str_ref) => (false, str_ref.as_ptr() as usize, str_ref.len()),
+        Cow::Owned(string) => (true, string.as_ptr() as usize, string.capacity()),
     };
 
     StringMemoryInfo {
@@ -207,26 +223,76 @@ pub fn is_static_str(s: &str, static_ref: Option<&'static str>) -> bool {
 }
 
 /// Prints a beautiful comparison of memory layout between two strings
-pub fn compare_memory_layout(
-    info1: &StringMemoryInfo,
-    info2: &StringMemoryInfo,
-    operation: &str,
-) {
+pub fn compare_memory_layout(info1: &StringMemoryInfo, info2: &StringMemoryInfo, operation: &str) {
     println!("\n");
-    println!("{}", "╔════════════════════════════════════════════════════════════════════════╗".bright_yellow().bold());
-    println!("{}", format!("║ {} {:<63} ║", "🔄".bright_white(), operation.bright_white().bold()).bright_yellow().bold());
-    println!("{}", "╠════════════════════════════════════════════════════════════════════════╣".bright_yellow().bold());
+    println!(
+        "{}",
+        "╔════════════════════════════════════════════════════════════════════════╗"
+            .bright_yellow()
+            .bold()
+    );
+    println!(
+        "{}",
+        format!(
+            "║ {} {:<63} ║",
+            "🔄".bright_white(),
+            operation.bright_white().bold()
+        )
+        .bright_yellow()
+        .bold()
+    );
+    println!(
+        "{}",
+        "╠════════════════════════════════════════════════════════════════════════╣"
+            .bright_yellow()
+            .bold()
+    );
 
     // BEFORE state
-    println!("{}", "║                                                                        ║".bright_yellow().bold());
-    println!("{}", format!("║  {}  BEFORE:                                                          ║", "⏪".bright_cyan()).bright_yellow().bold());
-    println!("{}", "║  ┌──────────────────────────────────────────────────────────────┐     ║".bright_yellow().bold());
-    println!("{}", format!("║  │ Ptr: {:#018x}  Len: {:>4}  Cap: {:>4}  │     ║",
-        info1.data_ptr,
-        info1.length.to_string().bright_cyan(),
-        info1.capacity.to_string().bright_yellow()).bright_yellow().bold());
-    println!("{}", "║  └──────────────────────────────────────────────────────────────┘     ║".bright_yellow().bold());
-    println!("{}", "║                                                                        ║".bright_yellow().bold());
+    println!(
+        "{}",
+        "║                                                                        ║"
+            .bright_yellow()
+            .bold()
+    );
+    println!(
+        "{}",
+        format!(
+            "║  {}  BEFORE:                                                          ║",
+            "⏪".bright_cyan()
+        )
+        .bright_yellow()
+        .bold()
+    );
+    println!(
+        "{}",
+        "║  ┌──────────────────────────────────────────────────────────────┐     ║"
+            .bright_yellow()
+            .bold()
+    );
+    println!(
+        "{}",
+        format!(
+            "║  │ Ptr: {:#018x}  Len: {:>4}  Cap: {:>4}  │     ║",
+            info1.data_ptr,
+            info1.length.to_string().bright_cyan(),
+            info1.capacity.to_string().bright_yellow()
+        )
+        .bright_yellow()
+        .bold()
+    );
+    println!(
+        "{}",
+        "║  └──────────────────────────────────────────────────────────────┘     ║"
+            .bright_yellow()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║                                                                        ║"
+            .bright_yellow()
+            .bold()
+    );
 
     // Arrow showing transformation
     let ptr_changed = info1.data_ptr != info2.data_ptr;
@@ -239,41 +305,146 @@ pub fn compare_memory_layout(
         colored::Color::BrightGreen
     };
 
-    println!("{}", format!("║                           {}  {}                              ║",
-        "│".color(arrow_color),
-        if ptr_changed { "NEW ALLOCATION!" } else { "in-place" }.color(arrow_color).bold()).bright_yellow().bold());
-    println!("{}", format!("║                           {}                                       ║", "▼".color(arrow_color)).bright_yellow().bold());
-    println!("{}", "║                                                                        ║".bright_yellow().bold());
+    println!(
+        "{}",
+        format!(
+            "║                           {}  {}                              ║",
+            "│".color(arrow_color),
+            if ptr_changed {
+                "NEW ALLOCATION!"
+            } else {
+                "in-place"
+            }
+            .color(arrow_color)
+            .bold()
+        )
+        .bright_yellow()
+        .bold()
+    );
+    println!(
+        "{}",
+        format!(
+            "║                           {}                                       ║",
+            "▼".color(arrow_color)
+        )
+        .bright_yellow()
+        .bold()
+    );
+    println!(
+        "{}",
+        "║                                                                        ║"
+            .bright_yellow()
+            .bold()
+    );
 
     // AFTER state
-    println!("{}", format!("║  {}  AFTER:                                                           ║", "⏩".bright_green()).bright_yellow().bold());
-    println!("{}", "║  ┌──────────────────────────────────────────────────────────────┐     ║".bright_yellow().bold());
-    println!("{}", format!("║  │ Ptr: {:#018x}  Len: {:>4}  Cap: {:>4}  │     ║",
-        info2.data_ptr,
-        info2.length.to_string().bright_cyan(),
-        info2.capacity.to_string().bright_yellow()).bright_yellow().bold());
-    println!("{}", "║  └──────────────────────────────────────────────────────────────┘     ║".bright_yellow().bold());
-    println!("{}", "║                                                                        ║".bright_yellow().bold());
+    println!(
+        "{}",
+        format!(
+            "║  {}  AFTER:                                                           ║",
+            "⏩".bright_green()
+        )
+        .bright_yellow()
+        .bold()
+    );
+    println!(
+        "{}",
+        "║  ┌──────────────────────────────────────────────────────────────┐     ║"
+            .bright_yellow()
+            .bold()
+    );
+    println!(
+        "{}",
+        format!(
+            "║  │ Ptr: {:#018x}  Len: {:>4}  Cap: {:>4}  │     ║",
+            info2.data_ptr,
+            info2.length.to_string().bright_cyan(),
+            info2.capacity.to_string().bright_yellow()
+        )
+        .bright_yellow()
+        .bold()
+    );
+    println!(
+        "{}",
+        "║  └──────────────────────────────────────────────────────────────┘     ║"
+            .bright_yellow()
+            .bold()
+    );
+    println!(
+        "{}",
+        "║                                                                        ║"
+            .bright_yellow()
+            .bold()
+    );
 
     // Analysis section
-    println!("{}", "╠════════════════════════════════════════════════════════════════════════╣".bright_yellow().bold());
-    println!("{}", format!("║  {}  ANALYSIS:                                                        ║", "📊".bright_blue()).bright_yellow().bold());
-    println!("{}", "║                                                                        ║".bright_yellow().bold());
+    println!(
+        "{}",
+        "╠════════════════════════════════════════════════════════════════════════╣"
+            .bright_yellow()
+            .bold()
+    );
+    println!(
+        "{}",
+        format!(
+            "║  {}  ANALYSIS:                                                        ║",
+            "📊".bright_blue()
+        )
+        .bright_yellow()
+        .bold()
+    );
+    println!(
+        "{}",
+        "║                                                                        ║"
+            .bright_yellow()
+            .bold()
+    );
 
     if ptr_changed {
-        println!("{}", format!("║  {} Pointer:  {:#018x} → {:#018x}  ║",
-            "🔴".bright_red(),
-            info1.data_ptr,
-            info2.data_ptr).bright_yellow().bold());
-        println!("{}", format!("║       {} Data was MOVED - new heap allocation!                      ║",
-            "└─>".bright_red()).bright_yellow().bold());
+        println!(
+            "{}",
+            format!(
+                "║  {} Pointer:  {:#018x} → {:#018x}  ║",
+                "🔴".bright_red(),
+                info1.data_ptr,
+                info2.data_ptr
+            )
+            .bright_yellow()
+            .bold()
+        );
+        println!(
+            "{}",
+            format!(
+                "║       {} Data was MOVED - new heap allocation!                      ║",
+                "└─>".bright_red()
+            )
+            .bright_yellow()
+            .bold()
+        );
     } else {
-        println!("{}", format!("║  {} Pointer:  {} (same address)                     ║",
-            "🟢".bright_green(),
-            "UNCHANGED".bright_green().bold()).bright_yellow().bold());
-        println!("{}", "║       └─> Modified in-place, zero-cost operation                       ║".bright_yellow().bold());
+        println!(
+            "{}",
+            format!(
+                "║  {} Pointer:  {} (same address)                     ║",
+                "🟢".bright_green(),
+                "UNCHANGED".bright_green().bold()
+            )
+            .bright_yellow()
+            .bold()
+        );
+        println!(
+            "{}",
+            "║       └─> Modified in-place, zero-cost operation                       ║"
+                .bright_yellow()
+                .bold()
+        );
     }
-    println!("{}", "║                                                                        ║".bright_yellow().bold());
+    println!(
+        "{}",
+        "║                                                                        ║"
+            .bright_yellow()
+            .bold()
+    );
 
     if capacity_changed {
         let delta = info2.capacity as i64 - info1.capacity as i64;
@@ -283,21 +454,47 @@ pub fn compare_memory_layout(
             format!("{}", delta).bright_red()
         };
 
-        println!("{}", format!("║  {} Capacity: {} → {} bytes (Δ {})          ║",
-            "📈".bright_yellow(),
-            info1.capacity.to_string().bright_white(),
-            info2.capacity.to_string().bright_white(),
-            delta_str).bright_yellow().bold());
+        println!(
+            "{}",
+            format!(
+                "║  {} Capacity: {} → {} bytes (Δ {})          ║",
+                "📈".bright_yellow(),
+                info1.capacity.to_string().bright_white(),
+                info2.capacity.to_string().bright_white(),
+                delta_str
+            )
+            .bright_yellow()
+            .bold()
+        );
         if info2.capacity > info1.capacity {
-            println!("{}", format!("║       └─> Reallocation triggered - grew by {} bytes                 ║",
-                delta).bright_yellow().bold());
+            println!(
+                "{}",
+                format!(
+                    "║       └─> Reallocation triggered - grew by {} bytes                 ║",
+                    delta
+                )
+                .bright_yellow()
+                .bold()
+            );
         }
     } else {
-        println!("{}", format!("║  {} Capacity: {} (no reallocation needed)                 ║",
-            "✓".bright_green(),
-            "UNCHANGED".bright_green().bold()).bright_yellow().bold());
+        println!(
+            "{}",
+            format!(
+                "║  {} Capacity: {} (no reallocation needed)                 ║",
+                "✓".bright_green(),
+                "UNCHANGED".bright_green().bold()
+            )
+            .bright_yellow()
+            .bold()
+        );
     }
-    println!("{}", "║                                                                        ║".bright_yellow().bold());
+    println!(
+        "{}",
+        "║                                                                        ║"
+            .bright_yellow()
+            .bold()
+    );
 
     if length_changed {
         let delta = info2.length as i64 - info1.length as i64;
@@ -307,80 +504,239 @@ pub fn compare_memory_layout(
             format!("{}", delta).bright_red()
         };
 
-        println!("{}", format!("║  {} Length:   {} → {} bytes (Δ {})              ║",
-            "📏".bright_cyan(),
-            info1.length.to_string().bright_white(),
-            info2.length.to_string().bright_white(),
-            delta_str).bright_yellow().bold());
+        println!(
+            "{}",
+            format!(
+                "║  {} Length:   {} → {} bytes (Δ {})              ║",
+                "📏".bright_cyan(),
+                info1.length.to_string().bright_white(),
+                info2.length.to_string().bright_white(),
+                delta_str
+            )
+            .bright_yellow()
+            .bold()
+        );
     } else {
-        println!("{}", format!("║  {} Length:   {} (no data added/removed)                  ║",
-            "✓".bright_green(),
-            "UNCHANGED".bright_green().bold()).bright_yellow().bold());
+        println!(
+            "{}",
+            format!(
+                "║  {} Length:   {} (no data added/removed)                  ║",
+                "✓".bright_green(),
+                "UNCHANGED".bright_green().bold()
+            )
+            .bright_yellow()
+            .bold()
+        );
     }
 
-    println!("{}", "║                                                                        ║".bright_yellow().bold());
-    println!("{}", "╚════════════════════════════════════════════════════════════════════════╝".bright_yellow().bold());
+    println!(
+        "{}",
+        "║                                                                        ║"
+            .bright_yellow()
+            .bold()
+    );
+    println!(
+        "{}",
+        "╚════════════════════════════════════════════════════════════════════════╝"
+            .bright_yellow()
+            .bold()
+    );
 }
 
 /// Displays the byte-level representation of a string
 pub fn display_bytes(s: &str, label: &str) {
     println!("\n");
-    println!("{}", "┌────────────────────────────────────────────────────────────────────┐".bright_magenta().bold());
-    println!("{}", format!("│ {} {:<60} │", "🔬".bright_yellow(), label.bright_white().bold()).bright_magenta().bold());
-    println!("{}", "├────────────────────────────────────────────────────────────────────┤".bright_magenta().bold());
-    println!("{}", "│                                                                    │".bright_magenta().bold());
+    println!(
+        "{}",
+        "┌────────────────────────────────────────────────────────────────────┐"
+            .bright_magenta()
+            .bold()
+    );
+    println!(
+        "{}",
+        format!(
+            "│ {} {:<60} │",
+            "🔬".bright_yellow(),
+            label.bright_white().bold()
+        )
+        .bright_magenta()
+        .bold()
+    );
+    println!(
+        "{}",
+        "├────────────────────────────────────────────────────────────────────┤"
+            .bright_magenta()
+            .bold()
+    );
+    println!(
+        "{}",
+        "│                                                                    │"
+            .bright_magenta()
+            .bold()
+    );
 
     // Show the string
-    println!("{}", format!("│  String:      {:<54} │", format!("\"{}\"", s).bright_cyan()).bright_magenta().bold());
-    println!("{}", "│                                                                    │".bright_magenta().bold());
+    println!(
+        "{}",
+        format!(
+            "│  String:      {:<54} │",
+            format!("\"{}\"", s).bright_cyan()
+        )
+        .bright_magenta()
+        .bold()
+    );
+    println!(
+        "{}",
+        "│                                                                    │"
+            .bright_magenta()
+            .bold()
+    );
 
     // Byte representation
     let bytes_str = format!("{:?}", s.as_bytes());
     if bytes_str.len() <= 54 {
-        println!("{}", format!("│  UTF-8 Bytes: {:<54} │", bytes_str.bright_green()).bright_magenta().bold());
+        println!(
+            "{}",
+            format!("│  UTF-8 Bytes: {:<54} │", bytes_str.bright_green())
+                .bright_magenta()
+                .bold()
+        );
     } else {
-        println!("{}", format!("│  UTF-8 Bytes: {:<54} │", &bytes_str[..54].bright_green()).bright_magenta().bold());
-        println!("{}", format!("│               {:<54} │", &bytes_str[54..].bright_green()).bright_magenta().bold());
+        println!(
+            "{}",
+            format!("│  UTF-8 Bytes: {:<54} │", &bytes_str[..54].bright_green())
+                .bright_magenta()
+                .bold()
+        );
+        println!(
+            "{}",
+            format!("│               {:<54} │", &bytes_str[54..].bright_green())
+                .bright_magenta()
+                .bold()
+        );
     }
 
     // Character representation
     let chars: Vec<char> = s.chars().collect();
     let chars_str = format!("{:?}", chars);
     if chars_str.len() <= 54 {
-        println!("{}", format!("│  Characters:  {:<54} │", chars_str.bright_yellow()).bright_magenta().bold());
+        println!(
+            "{}",
+            format!("│  Characters:  {:<54} │", chars_str.bright_yellow())
+                .bright_magenta()
+                .bold()
+        );
     } else {
-        println!("{}", format!("│  Characters:  {:<54} │", &chars_str[..54].bright_yellow()).bright_magenta().bold());
-        println!("{}", format!("│               {:<54} │", &chars_str[54..].bright_yellow()).bright_magenta().bold());
+        println!(
+            "{}",
+            format!("│  Characters:  {:<54} │", &chars_str[..54].bright_yellow())
+                .bright_magenta()
+                .bold()
+        );
+        println!(
+            "{}",
+            format!("│               {:<54} │", &chars_str[54..].bright_yellow())
+                .bright_magenta()
+                .bold()
+        );
     }
 
-    println!("{}", "│                                                                    │".bright_magenta().bold());
-    println!("{}", format!("│  {} Byte count:  {:<48} │", "📏".bright_cyan(), s.len().to_string().bright_cyan().bold()).bright_magenta().bold());
-    println!("{}", format!("│  {} Char count:  {:<48} │", "🔤".bright_yellow(), s.chars().count().to_string().bright_yellow().bold()).bright_magenta().bold());
+    println!(
+        "{}",
+        "│                                                                    │"
+            .bright_magenta()
+            .bold()
+    );
+    println!(
+        "{}",
+        format!(
+            "│  {} Byte count:  {:<48} │",
+            "📏".bright_cyan(),
+            s.len().to_string().bright_cyan().bold()
+        )
+        .bright_magenta()
+        .bold()
+    );
+    println!(
+        "{}",
+        format!(
+            "│  {} Char count:  {:<48} │",
+            "🔤".bright_yellow(),
+            s.chars().count().to_string().bright_yellow().bold()
+        )
+        .bright_magenta()
+        .bold()
+    );
 
     if s.len() != s.chars().count() {
-        println!("{}", "│                                                                    │".bright_magenta().bold());
-        println!("{}", format!("│  {} {:<61} │",
-            "⚠️".bright_yellow(),
-            "Multi-byte UTF-8 characters detected!".bright_yellow().bold()).bright_magenta().bold());
+        println!(
+            "{}",
+            "│                                                                    │"
+                .bright_magenta()
+                .bold()
+        );
+        println!(
+            "{}",
+            format!(
+                "│  {} {:<61} │",
+                "⚠️".bright_yellow(),
+                "Multi-byte UTF-8 characters detected!"
+                    .bright_yellow()
+                    .bold()
+            )
+            .bright_magenta()
+            .bold()
+        );
 
         // Show detailed breakdown
-        println!("{}", "│                                                                    │".bright_magenta().bold());
-        println!("{}", "│  Character Breakdown:                                              │".bright_magenta().bold());
+        println!(
+            "{}",
+            "│                                                                    │"
+                .bright_magenta()
+                .bold()
+        );
+        println!(
+            "{}",
+            "│  Character Breakdown:                                              │"
+                .bright_magenta()
+                .bold()
+        );
         for (i, ch) in s.chars().enumerate().take(5) {
             let byte_len = ch.len_utf8();
             let marker = if byte_len > 1 { "⚡" } else { "·" };
-            println!("{}", format!("│    {} [{}] '{}' = {} byte(s)                                │",
-                marker.bright_yellow(),
-                i,
-                ch.to_string().bright_cyan(),
-                byte_len.to_string().bright_green()
-            ).bright_magenta().bold());
+            println!(
+                "{}",
+                format!(
+                    "│    {} [{}] '{}' = {} byte(s)                                │",
+                    marker.bright_yellow(),
+                    i,
+                    ch.to_string().bright_cyan(),
+                    byte_len.to_string().bright_green()
+                )
+                .bright_magenta()
+                .bold()
+            );
         }
         if s.chars().count() > 5 {
-            println!("{}", "│    ... (and more)                                                  │".bright_magenta().bold());
+            println!(
+                "{}",
+                "│    ... (and more)                                                  │"
+                    .bright_magenta()
+                    .bold()
+            );
         }
     }
 
-    println!("{}", "│                                                                    │".bright_magenta().bold());
-    println!("{}", "└────────────────────────────────────────────────────────────────────┘".bright_magenta().bold());
+    println!(
+        "{}",
+        "│                                                                    │"
+            .bright_magenta()
+            .bold()
+    );
+    println!(
+        "{}",
+        "└────────────────────────────────────────────────────────────────────┘"
+            .bright_magenta()
+            .bold()
+    );
 }
