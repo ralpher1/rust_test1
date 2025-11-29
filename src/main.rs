@@ -18,19 +18,19 @@
 //! - `main`: Orchestrates demonstrations with rich logging
 
 mod inspector;
+mod spectacular;
 mod transformer;
 mod visual;
-mod spectacular;
 
 use colored::Colorize;
 use inspector::*;
+use spectacular::*;
 use std::borrow::Cow;
 use tokio::task;
 use tracing::{error, info, warn, Level};
 use tracing_subscriber::fmt::format::FmtSpan;
 use transformer::*;
 use visual::*;
-use spectacular::*;
 
 // Removed old print_section - using visual::print_section_header now
 

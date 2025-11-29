@@ -8,7 +8,7 @@
 
 use colored::Colorize;
 use indicatif::{ProgressBar, ProgressStyle};
-use std::io::{stdout, Write};
+use std::io::{self, stdout, IsTerminal, Write};
 use std::thread;
 use std::time::Duration;
 
@@ -279,8 +279,34 @@ pub fn prompt_continue() {
     );
     println!("{}", "─".repeat(75).bright_black());
 
+    let should_auto_advance = std::env::var("LAB_AUTO_ADVANCE")
+        .map(|v| matches!(v.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
+        .unwrap_or(false)
+        || !io::stdin().is_terminal();
+
+    if should_auto_advance {
+        println!(
+            "{}",
+            "  Auto-advancing (set LAB_AUTO_ADVANCE=0 to pause)"
+                .bright_white()
+                .dimmed()
+        );
+
+        for i in (1..=3).rev() {
+            print!("\r    Launching next section in {}s...", i);
+            stdout().flush().ok();
+            thread::sleep(Duration::from_millis(320));
+        }
+
+        println!(
+            "\r{}                    ",
+            "    ✨ Ignition! ✨".bright_green().bold()
+        );
+        return;
+    }
+
     let mut input = String::new();
-    std::io::stdin().read_line(&mut input).ok();
+    io::stdin().read_line(&mut input).ok();
 }
 
 /// Creates a visual table for displaying structured data
@@ -402,7 +428,11 @@ pub fn print_3d_box(title: &str, content: &[&str]) {
     println!(
         "  {}{}{}{}",
         "║".bright_cyan().bold(),
-        format!(" {:<width$} ", title.bright_yellow().bold(), width = max_width),
+        format!(
+            " {:<width$} ",
+            title.bright_yellow().bold(),
+            width = max_width
+        ),
         "║".bright_cyan().bold(),
         "▓".bright_black()
     );
